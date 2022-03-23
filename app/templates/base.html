@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - Signalship</title>
+      {% else %}
+      <title>Welcome to Signalship</title>
+      {% endif %}
+    </head>
+    <body>
+        <div>Signalship: <a href="/index">Homepage</a></div>
+        <hr>
+        {% block content %}{% endblock %}
+    </body>
+</html>
