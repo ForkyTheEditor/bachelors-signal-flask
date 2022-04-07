@@ -5,21 +5,22 @@ from flask import render_template, flash, redirect, url_for
 from matplotlib.figure import Figure
 
 from app import app
-from app.forms import LoginForm
+from app.forms import LoginForm, SignalGenerationForm
+from app.signal_generation import generate_signal
 
 
 @app.route('/')
 @app.route('/index')
 def index():
-    user = {'username': 'Bai'}
+    user = {'username': 'alo'}
     posts = [
         {
-            'author': {'username': 'UnBoacter'},
+            'author': {'username': 'ElChapo'},
             'body': 'Cat e ceasu!'
         },
         {
-            'author': {'username': 'UnFraier'},
-            'body': '!'
+            'author': {'username': 'JeanValjean'},
+            'body': 'da domnule'
         }
     ]
     return render_template('index.html', title='Homepage', user=user, posts=posts)
@@ -34,12 +35,34 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@app.route('/generate')
+@app.route('/generate', methods=['GET', 'POST'])
 def signal_generator():
 
+    form = SignalGenerationForm()
+
+    embedded_image = []
+
+    if form.validate_on_submit():
+        # Recalculate and redraw plot
+
+        signal = generate_signal(form.sample_rate_field.data, form.frequency_field.data, form.duration.data,
+                        False)
+
+        embedded_image = create_plot(signal)
+
+
+
+
+    return render_template('generate.html', plot=embedded_image, form=form)
+
+
+
+def create_plot(signal):
+
+    # ======= DRAW PLOT ====== #
     fig = Figure()
     ax = fig.subplots()
-    ax.plot([1, 2])
+    ax.plot(signal)
     # Save it to a temporary buffer.
     buf = io.BytesIO()
     fig.savefig(buf, format="png")
@@ -47,5 +70,6 @@ def signal_generator():
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
 
     embedded_image = f"data:image/png;base64,{data}"
+    # ======= DRAW PLOT ====== #
 
-    return render_template('generate.html', plot=embedded_image)
+    return embedded_image

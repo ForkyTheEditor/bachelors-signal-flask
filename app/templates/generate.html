@@ -2,7 +2,39 @@
 
 {% block content %}
 
-<h3> Plot </h3>
-<hr>
-<img src="{{ plot }}"/>
+<div class="row">
+ <div class="column">
+   <form action="" method="post" novalidate>
+   {{ form.hidden_tag() }}
+   <p>
+    {{ form.sample_rate_field.label }}
+    {{ form.sample_rate_field(size=32) }}
+   </p>
+   <p>
+    {{ form.frequency_field.label }}
+    {{ form.frequency_field(size=32) }}
+   </p>
+   <p>
+    {{ form.duration.label }}
+    {{ form.duration(size=32) }}
+   </p>
+   <p>
+    {{ form.generate() }}
+   </p>
+
+   </form>
+
+ </div>
+
+ <div class="column">
+
+   <h3> Plot </h3>
+   <hr>
+   <img src="{{ plot }}"/>
+
+
+ </div>
+
+</div>
+
 {% endblock %}
