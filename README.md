@@ -1,1 +1,1 @@
-# Signalship - A Flask Web App meant for signal generation
+# Signalship - A Web-Tool-Suite meant for metal beam defect detection and other signal generator-y things
