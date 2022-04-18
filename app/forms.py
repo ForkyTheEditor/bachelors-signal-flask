@@ -16,7 +16,7 @@ class SignalGenerationForm(FlaskForm):
     sample_rate_field = IntegerField(label='Sample Rate')
     frequency_field = FloatField(label='Frequency')
     duration = FloatField(label='Duration (s)')
-    useCos = BooleanField(label='Use cos function')
+    useCos = BooleanField(label='Use cos function (sin by default)')
     generate = SubmitField(label='Generate Signal')
 
 

@@ -13,10 +13,15 @@
 
 {% block navbar %}
     <nav class="navbar navbar-default">
-        <div>Signalship:
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('signal_generator') }}">Signal generator</a>
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Signalship</a>
+
+               <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('signal_generator') }}">Signal generator</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li> <a href="{{ url_for('login') }}">Login</a></li>
+                </ul>
         </div>
     </nav>
 {% endblock %}
