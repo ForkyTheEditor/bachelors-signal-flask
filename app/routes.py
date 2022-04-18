@@ -21,7 +21,8 @@ def index():
     ]
     return render_template('index.html', title='Homepage', user=user, posts=posts)
 
-@app.route('/login',  methods=['GET', 'POST'])
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -33,7 +34,6 @@ def login():
 
 @app.route('/generate', methods=['GET', 'POST'])
 def signal_generator():
-
     form = SignalGenerationForm()
 
     embedded_image = []
@@ -41,14 +41,10 @@ def signal_generator():
     if form.validate_on_submit():
         # Recalculate and redraw plot
 
-        signal = generate_signal(form.sample_rate_field.data, form.frequency_field.data, form.duration.data,
-                        form.useCos.data)
+        (signal, time_range) = generate_signal(form.sample_rate_field.data, form.frequency_field.data,
+                                               form.duration.data,
+                                               form.useCos.data)
 
-        embedded_image = create_plot(signal)
-
-
-
+        embedded_image = create_plot(signal, time_range)
 
     return render_template('generate.html', plot=embedded_image, form=form)
-
-
