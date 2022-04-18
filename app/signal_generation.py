@@ -1,5 +1,8 @@
-import numpy as np
+import base64
+import io
 
+import numpy as np
+from matplotlib.figure import Figure
 
 
 def generate_signal(sample_rate, frequency, duration, useCos):
@@ -17,3 +20,23 @@ def generate_signal(sample_rate, frequency, duration, useCos):
         signal = np.sin(2 * np.pi * frequency * time_range)
 
     return signal
+
+
+
+
+def create_plot(signal):
+
+    # ======= DRAW PLOT ====== #
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot(signal)
+    # Save it to a temporary buffer.
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+
+    embedded_image = f"data:image/png;base64,{data}"
+    # ======= DRAW PLOT ====== #
+
+    return embedded_image

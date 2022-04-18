@@ -1,12 +1,8 @@
-import base64
-import io
-
 from flask import render_template, flash, redirect, url_for
-from matplotlib.figure import Figure
 
 from app import app
 from app.forms import LoginForm, SignalGenerationForm
-from app.signal_generation import generate_signal
+from app.signal_generation import generate_signal, create_plot
 
 
 @app.route('/')
@@ -46,7 +42,7 @@ def signal_generator():
         # Recalculate and redraw plot
 
         signal = generate_signal(form.sample_rate_field.data, form.frequency_field.data, form.duration.data,
-                        False)
+                        form.useCos.data)
 
         embedded_image = create_plot(signal)
 
@@ -56,20 +52,3 @@ def signal_generator():
     return render_template('generate.html', plot=embedded_image, form=form)
 
 
-
-def create_plot(signal):
-
-    # ======= DRAW PLOT ====== #
-    fig = Figure()
-    ax = fig.subplots()
-    ax.plot(signal)
-    # Save it to a temporary buffer.
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png")
-    # Embed the result in the html output.
-    data = base64.b64encode(buf.getbuffer()).decode("ascii")
-
-    embedded_image = f"data:image/png;base64,{data}"
-    # ======= DRAW PLOT ====== #
-
-    return embedded_image
