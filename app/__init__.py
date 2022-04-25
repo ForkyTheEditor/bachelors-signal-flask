@@ -3,9 +3,14 @@ from flask import Flask
 from config import Config
 from firebase_admin import credentials
 from firebase_admin import db
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
+
+# Initialize config
 app.config.from_object(Config)
+
+# Initialize Firebase
 cred = credentials.Certificate(app.config['FIREBASE_SECRET_KEY_PATH'])
 
 firebase_admin.initialize_app(cred, {
@@ -13,5 +18,8 @@ firebase_admin.initialize_app(cred, {
 })
 
 db_ref = db.reference()
+
+# Initialize bootstrap
+bootstrap = Bootstrap(app)
 
 from app import routes
