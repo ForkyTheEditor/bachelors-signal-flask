@@ -8,7 +8,7 @@ from app.signal_generation import generate_signal, create_plot
 @app.route('/')
 @app.route('/index')
 def index():
-    user = {'username': 'alo'}
+    user = {'username': 'Handicapatul'}
     posts = [
         {
             'author': {'username': 'ElChapo'},
@@ -41,7 +41,16 @@ def signal_generator():
     if form.validate_on_submit():
         # Recalculate and redraw plot
 
-        (signal, time_range) = generate_signal(form.sample_rate_field.data, form.frequency_field.data,
+
+
+        frequency_array = [form.frequency_field1.data,
+                           form.frequency_field2.data,
+                           form.frequency_field3.data]
+
+        # Remove zeros and negative values
+        frequency_array = [i for i in frequency_array if i > 0]
+
+        (signal, time_range) = generate_signal(form.sample_rate_field.data, frequency_array,
                                                form.duration.data,
                                                form.useCos.data)
 
