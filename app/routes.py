@@ -39,20 +39,29 @@ def signal_generator():
     embedded_image = []
 
     if form.validate_on_submit():
-        # Recalculate and redraw plot
 
+        # Recalculate and redraw plot
 
 
         frequency_array = [form.frequency_field1.data,
                            form.frequency_field2.data,
                            form.frequency_field3.data]
 
-        # Remove zeros and negative values
+        amplitude_array = [form.amplitude_field1.data,
+                           form.amplitude_field2.data,
+                           form.amplitude_field3.data]
+
+        phase_array = [form.phase_field1.data,
+                       form.phase_field2.data,
+                       form.phase_field3.data]
+
+        # Remove negative values and zeroes
         frequency_array = [i for i in frequency_array if i > 0]
+        amplitude_array = [i for i in amplitude_array if i >= 0]
 
         (signal, time_range) = generate_signal(form.sample_rate_field.data, frequency_array,
-                                               form.duration.data,
-                                               form.useCos.data)
+                                               form.duration.data, amplitude_array, phase_array,
+                                               form.useCos.data, normalize=form.normalize.data)
 
         embedded_image = create_plot(signal, time_range)
 
