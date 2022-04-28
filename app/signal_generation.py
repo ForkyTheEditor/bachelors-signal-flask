@@ -3,11 +3,11 @@ import io
 import math
 
 import numpy as np
-from matplotlib import pyplot as plt
+from app import generated_signals_history
 from matplotlib.figure import Figure
 
 
-def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_cos, normalize=True):
+def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_cos, normalize=True, save=False):
     """
         Generates a sin signal with the given sample rate, frequency and duration.
         Make useCos True to generate a cos signal.
@@ -32,7 +32,9 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
     time_range = np.arange(0, nr_time_samples) / sample_rate
 
     # Define variable
-    signal = np.zeros((frequencies.shape[0], nr_time_samples))
+    signal = np.zeros((1, nr_time_samples))
+
+
 
 
     # Add all the frequencies together to get the resulting signal
@@ -47,10 +49,39 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
             minA = np.repeat(signal.min()[np.newaxis], nr_time_samples)
             signal = (2 * (signal - minA) / (maxA - minA)) - 1
 
+
+    if save:
+
+        # Create id so you don't save same signal twice
+        signal_id = ""
+        for f in frequencies:
+            signal_id += str(f)
+        for a in amplitudes:
+            signal_id += str(a)
+        for p in phases:
+            signal_id += str(p)
+        signal_id += str(duration)
+        signal_id += str(sample_rate)
+
+        # Only save if id is unique
+        if signal_id not in [i[0] for i in generated_signals_history]:
+
+            # Give the signal a name (TODO: Let the user decide on the name)
+            name = "Signal " + str(len(generated_signals_history))
+
+            # Save the signal to the history
+            generated_signals_history.append((signal_id, name, signal, sample_rate))
+
+
     return signal, time_range
 
 
 def create_plot(signal, time):
+    """
+    Creates a plot of the given signal and returns it as an image.
+
+    """
+
 
     # ======= DRAW PLOT ====== #
 

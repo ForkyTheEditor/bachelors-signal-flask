@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField, FloatField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField, FloatField, SelectField
 from wtforms.validators import DataRequired
+
+from app import generated_signals_history
 
 
 class LoginForm(FlaskForm):
@@ -26,7 +28,16 @@ class SignalGenerationForm(FlaskForm):
     duration = FloatField(label='Duration (s)', default=1)
     useCos = BooleanField(label='Use cos function (sin by default)')
     normalize = BooleanField(label='Normalize')
+    save = BooleanField(label='Save signal to cache')
     generate = SubmitField(label='Generate Signal')
+
+
+class DFTCalculationForm(FlaskForm):
+
+    select_signal = SelectField(label="Select Signal", coerce=int)
+    maximum_frequency = FloatField(label='Maximum frequency', default=1)
+    calculate_dft = SubmitField(label='Calculate DFT')
+
 
 
 

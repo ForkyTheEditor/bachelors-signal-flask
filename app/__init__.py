@@ -22,4 +22,6 @@ db_ref = db.reference()
 # Initialize bootstrap
 bootstrap = Bootstrap(app)
 
+generated_signals_history = []
+
 from app import routes

@@ -1,7 +1,9 @@
-from flask import render_template, flash, redirect, url_for
+import requests
+from flask import render_template, flash, redirect, url_for, request
 
-from app import app
-from app.forms import LoginForm, SignalGenerationForm
+from app import app, generated_signals_history
+from app.dft_calculation import plot_dft, calculate_dft
+from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm
 from app.signal_generation import generate_signal, create_plot
 
 
@@ -39,9 +41,7 @@ def signal_generator():
     embedded_image = []
 
     if form.validate_on_submit():
-
         # Recalculate and redraw plot
-
 
         frequency_array = [form.frequency_field1.data,
                            form.frequency_field2.data,
@@ -56,13 +56,35 @@ def signal_generator():
                        form.phase_field3.data]
 
         # Remove negative values and zeroes
-        frequency_array = [i for i in frequency_array if i > 0]
+        frequency_array = [i for i in frequency_array if i >= 0]
         amplitude_array = [i for i in amplitude_array if i >= 0]
 
         (signal, time_range) = generate_signal(form.sample_rate_field.data, frequency_array,
                                                form.duration.data, amplitude_array, phase_array,
-                                               form.useCos.data, normalize=form.normalize.data)
+                                               form.useCos.data, normalize=form.normalize.data, save=form.save.data)
 
         embedded_image = create_plot(signal, time_range)
 
     return render_template('generate.html', plot=embedded_image, form=form)
+
+
+@app.route('/dft', methods=['GET', 'POST'])
+def dft():
+    form = DFTCalculationForm()
+
+    # Populate the choices list with the saved signals
+    form.select_signal.choices = [(i, signal[1]) for i, signal
+                                  in enumerate(generated_signals_history)]
+
+    embedded_image = []
+
+    if form.validate_on_submit():
+
+        selected_index = form.select_signal.data
+        selected_signal = generated_signals_history[selected_index]
+
+        signal_dft = calculate_dft(selected_signal[2])
+
+        embedded_image = plot_dft(signal_dft, selected_signal[3])
+
+    return render_template('dft.html', plot=embedded_image, signals=generated_signals_history, form=form)
