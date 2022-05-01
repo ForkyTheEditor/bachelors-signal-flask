@@ -5,34 +5,29 @@ import numpy as np
 from matplotlib.figure import Figure
 
 
-def calculate_dft(signal):
-    """
-    N = total number of samples;
-    n = current sample;
-    k = current frequency, where k∈[0,N−1];
-
-    """
-    N = len(signal)
-    n = np.arange(N)
-    k = n.reshape((N, 1))
-    e = np.exp(-2j * np.pi * k * n / N)
-
-    DFT = np.dot(e, signal)
-
-    return DFT
-
-
 def plot_dft(DFT, sample_rate):
 
-    N = len(DFT)
+    N = DFT.shape[1]
     n = np.arange(N)
     T = N / sample_rate
     frequency = n / T
 
+    DFT = DFT[0]
+
+    # The plot is symmetric from the half point ( Nyquist frequency )
+    # => only use one half
+    half_point = N // 2
+    frequency_half = frequency[:half_point]
+
+    DFT_half = DFT[:half_point]/half_point
+    print(DFT_half)
+    print(DFT)
     # ======= DRAW PLOT ====== #
     fig = Figure(figsize=(10, 6))
     ax = fig.subplots()
-    ax.stem(frequency, abs(DFT))
+
+
+    ax.stem(frequency_half, abs(DFT_half), 'b', basefmt="-b")
 
     ax.grid(visible=True)
 

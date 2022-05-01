@@ -1,8 +1,9 @@
 import requests
 from flask import render_template, flash, redirect, url_for, request
+from scipy.fftpack import fft
 
 from app import app, generated_signals_history
-from app.dft_calculation import plot_dft, calculate_dft
+from app.dft_calculation import plot_dft
 from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm
 from app.signal_generation import generate_signal, create_plot
 
@@ -83,7 +84,7 @@ def dft():
         selected_index = form.select_signal.data
         selected_signal = generated_signals_history[selected_index]
 
-        signal_dft = calculate_dft(selected_signal[2])
+        signal_dft = fft(selected_signal[2])
 
         embedded_image = plot_dft(signal_dft, selected_signal[3])
 
