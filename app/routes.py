@@ -84,6 +84,7 @@ def dft():
         selected_index = form.select_signal.data
         selected_signal = generated_signals_history[selected_index]
 
+        # Calculate the DFT
         signal_dft = fft(selected_signal[2])
 
         embedded_image = plot_dft(signal_dft, selected_signal[3])

@@ -27,7 +27,7 @@ def plot_dft(DFT, sample_rate):
     ax = fig.subplots()
 
 
-    ax.stem(frequency_half, abs(DFT_half), 'b', basefmt="-b")
+    ax.plot(frequency_half, abs(DFT_half))
 
     ax.grid(visible=True)
 
