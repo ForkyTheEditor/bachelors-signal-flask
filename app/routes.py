@@ -1,10 +1,10 @@
 import requests
 from flask import render_template, flash, redirect, url_for, request
-from scipy.fftpack import fft
 
 from app import app, generated_signals_history
-from app.dft_calculation import plot_dft
-from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm
+from app.dft_calculation import plot_dft, calculate_dft
+from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm, FrequencyEstimationForm
+from app.frequency_estimation import estimate_frequency
 from app.signal_generation import generate_signal, create_plot
 
 
@@ -40,6 +40,9 @@ def signal_generator():
     form = SignalGenerationForm()
 
     embedded_image = []
+
+    # Mock
+    generate_signal(100, [4.54, 53.33], 1, [1,1], [0,0,0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
@@ -80,13 +83,36 @@ def dft():
     embedded_image = []
 
     if form.validate_on_submit():
-
         selected_index = form.select_signal.data
         selected_signal = generated_signals_history[selected_index]
 
         # Calculate the DFT
-        signal_dft = fft(selected_signal[2])
+        signal_dft = calculate_dft(selected_signal)
 
         embedded_image = plot_dft(signal_dft, selected_signal[3])
 
     return render_template('dft.html', plot=embedded_image, signals=generated_signals_history, form=form)
+
+
+@app.route('/estimate', methods=['GET', 'POST'])
+def frequency_estimation():
+    form = FrequencyEstimationForm()
+
+    # Populate the choices list with the saved signals
+    form.select_signal.choices = [(i, signal[1]) for i, signal
+                                  in enumerate(generated_signals_history)]
+
+    embedded_image = []
+
+    if form.validate_on_submit():
+        selected_index = form.select_signal.data
+        selected_signal = generated_signals_history[selected_index]
+
+        # Estimate the frequency
+        embedded_image = estimate_frequency(selected_signal)
+
+
+
+
+    return render_template('frequency_estimation.html', plot=embedded_image,
+                           signals=generated_signals_history, form=form)

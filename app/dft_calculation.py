@@ -3,9 +3,15 @@ import io
 
 import numpy as np
 from matplotlib.figure import Figure
+from scipy.fftpack import fft
 
 
-def plot_dft(DFT, sample_rate):
+def calculate_dft(signal):
+    return fft(signal[2])
+
+
+
+def plot_dft(DFT, sample_rate, peaks=None):
 
     N = DFT.shape[1]
     n = np.arange(N)
@@ -20,14 +26,16 @@ def plot_dft(DFT, sample_rate):
     frequency_half = frequency[:half_point]
 
     DFT_half = DFT[:half_point]/half_point
-    print(DFT_half)
-    print(DFT)
+
     # ======= DRAW PLOT ====== #
     fig = Figure(figsize=(10, 6))
     ax = fig.subplots()
 
-
     ax.plot(frequency_half, abs(DFT_half))
+
+    if peaks is not None:
+        ax.scatter(peaks, DFT_half[peaks])
+
 
     ax.grid(visible=True)
 

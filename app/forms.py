@@ -6,7 +6,6 @@ from app import generated_signals_history
 
 
 class LoginForm(FlaskForm):
-
     username = StringField(label='Username', validators=[DataRequired()])
     password = PasswordField(label='Password', validators=[DataRequired()])
     remember_me = BooleanField(label='Remember Me')
@@ -14,7 +13,6 @@ class LoginForm(FlaskForm):
 
 
 class SignalGenerationForm(FlaskForm):
-
     sample_rate_field = IntegerField(label='Sample Rate', default=100)
     frequency_field1 = FloatField(label='Frequency 1', default=0)
     frequency_field2 = FloatField(label='Frequency 2', default=0)
@@ -33,11 +31,13 @@ class SignalGenerationForm(FlaskForm):
 
 
 class DFTCalculationForm(FlaskForm):
-
     select_signal = SelectField(label="Select Signal", coerce=int)
-    maximum_frequency = FloatField(label='Maximum frequency', default=1)
+    # maximum_frequency = FloatField(label='Maximum frequency', default=1)
     calculate_dft = SubmitField(label='Calculate DFT')
 
 
+class FrequencyEstimationForm(FlaskForm):
 
+    select_signal = SelectField(label="Select Signal", coerce=int)
+    estimate_frequency = SubmitField(label='Estimate Frequency')
 

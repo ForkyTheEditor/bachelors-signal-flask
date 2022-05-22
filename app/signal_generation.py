@@ -7,7 +7,7 @@ from app import generated_signals_history
 from matplotlib.figure import Figure
 
 
-def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_cos, normalize=True, save=False):
+def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_cos=False, normalize=True, save=False):
     """
         Generates a sin signal with the given sample rate, frequency and duration.
         Make useCos True to generate a cos signal.
