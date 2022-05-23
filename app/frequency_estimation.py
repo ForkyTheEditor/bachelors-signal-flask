@@ -18,4 +18,4 @@ def estimate_frequency(signal):
     peaks = find_peaks(dft_half, height=0.1, prominence=0.2)
 
 
-    return plot_dft(dft, signal[3], peaks=peaks[0])
+    return plot_dft(dft, signal[3], peaks=peaks[0]), peaks[0]

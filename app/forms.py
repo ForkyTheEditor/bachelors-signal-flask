@@ -39,5 +39,10 @@ class DFTCalculationForm(FlaskForm):
 class FrequencyEstimationForm(FlaskForm):
 
     select_signal = SelectField(label="Select Signal", coerce=int)
-    estimate_frequency = SubmitField(label='Estimate Frequency')
+    estimate_frequency = SubmitField(label='Estimate Frequency (DFT)')
 
+
+class PeakSelectForm(FlaskForm):
+
+    select_peak = SelectField(label="Select Peak", coerce=int)
+    submit_choice = SubmitField(label="Calculate around peak")

@@ -36,6 +36,14 @@ def plot_dft(DFT, sample_rate, peaks=None):
     if peaks is not None:
         ax.scatter(peaks, DFT_half[peaks])
 
+        # Add the text for each peak
+        for index, peak in enumerate(peaks):
+
+            text = "Peak " + str(index) + " - Freq: " + str(frequency_half[peak]) \
+                   + " / DFT Amplitude: " + str(round(abs(DFT_half[peak]), 4))
+
+            ax.annotate(text, (peak - 0.05, DFT_half[peak] + 0.025))
+
 
     ax.grid(visible=True)
 
@@ -47,7 +55,7 @@ def plot_dft(DFT, sample_rate, peaks=None):
     buf = io.BytesIO()
 
 
-    fig.savefig(buf, format="png")
+    fig.savefig(buf, format="png", bbox_inches="tight")
 
 
     # Embed the result in the html output.
