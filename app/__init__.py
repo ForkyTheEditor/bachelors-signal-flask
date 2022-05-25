@@ -22,4 +22,7 @@ db_ref = db.reference()
 # Initialize bootstrap
 bootstrap = Bootstrap(app)
 
+generated_signals_history = []
+peaks_frequency_estimation = []
+
 from app import routes

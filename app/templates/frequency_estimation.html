@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+
+             {{ wtf.quick_form(form) }}
+
+
+            {{ wtf.quick_form(peak_form) }}
+
+
+        </div>
+        <div class="col-md-10">
+            {% if plot %}
+                <img src="{{ plot }}"/>
+            {% endif %}
+        </div>
+
+    </div>
+
+
+</div>
+
+{% endblock %}
