@@ -107,9 +107,6 @@ def frequency_estimation():
     form.select_signal.choices = [(i, signal[1]) for i, signal
                                   in enumerate(generated_signals_history)]
 
-
-
-
     embedded_image = []
 
     if form.validate_on_submit():
@@ -117,25 +114,23 @@ def frequency_estimation():
         selected_signal = generated_signals_history[selected_index]
 
         # Estimate the frequency
-        embedded_image, peaks = estimate_initial_frequency(selected_signal,
-                                                           form.start_freq_field.data,
-                                                           form.end_freq_field.data)
+        embedded_image = estimate_initial_frequency(selected_signal,
+                                                    form.start_freq_field.data,
+                                                    form.end_freq_field.data)
 
-        peaks_frequency_estimation.append(peaks)
+        # peaks_frequency_estimation.append(peaks)
 
-
-    if peaks_frequency_estimation:
-        peak_form.select_peak.choices = [(peak, "Peak " + str(i)) for i, peak
-                                         in enumerate(peaks_frequency_estimation[0])]
-        # Reactivate the peak form
-        peak_form.submit_choice.render_kw = {}
-        peak_form.select_peak.render_kw = {}
-
-
-    if peak_form.select_peak.data and peak_form.validate_on_submit():
-
-        peak_form.select_peak.data
-
+    # if peaks_frequency_estimation:
+    #     peak_form.select_peak.choices = [(peak, "Peak " + str(i)) for i, peak
+    #                                      in enumerate(peaks_frequency_estimation[0])]
+    #     # Reactivate the peak form
+    #     peak_form.submit_choice.render_kw = {}
+    #     peak_form.select_peak.render_kw = {}
+    #
+    #
+    # if peak_form.select_peak.data and peak_form.validate_on_submit():
+    #
+    #     peak_form.select_peak.data
 
     return render_template('frequency_estimation.html', plot=embedded_image,
                            signals=generated_signals_history, form=form, peak_form=peak_form)
