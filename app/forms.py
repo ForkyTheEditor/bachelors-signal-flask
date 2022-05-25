@@ -32,13 +32,14 @@ class SignalGenerationForm(FlaskForm):
 
 class DFTCalculationForm(FlaskForm):
     select_signal = SelectField(label="Select Signal", coerce=int)
-    # maximum_frequency = FloatField(label='Maximum frequency', default=1)
     calculate_dft = SubmitField(label='Calculate DFT')
 
 
 class FrequencyEstimationForm(FlaskForm):
 
     select_signal = SelectField(label="Select Signal", coerce=int)
+    start_freq_field = IntegerField(label='Start frequency', default=0)
+    end_freq_field = IntegerField(label='End frequency', default=50)
     estimate_frequency = SubmitField(label='Estimate Frequency (DFT)')
 
 

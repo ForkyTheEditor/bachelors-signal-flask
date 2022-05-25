@@ -3,10 +3,10 @@ import io
 
 import numpy as np
 from matplotlib.figure import Figure
-from scipy.fftpack import fft
+from scipy.fftpack import fft, fftfreq
 
 
-def calculate_dft(signal):
+def calculate_fft(signal):
     return fft(signal[2])
 
 
@@ -14,16 +14,13 @@ def calculate_dft(signal):
 def plot_dft(DFT, sample_rate, peaks=None):
 
     N = DFT.shape[1]
-    n = np.arange(N)
-    T = N / sample_rate
-    frequency = n / T
+    frequencies = fftfreq(N, 1/sample_rate)
 
     DFT = DFT[0]
 
     # The plot is symmetric from the half point ( Nyquist frequency )
     # => only use one half
     half_point = N // 2
-    frequency_half = frequency[:half_point]
 
     DFT_half = DFT[:half_point]/half_point
 
@@ -31,21 +28,24 @@ def plot_dft(DFT, sample_rate, peaks=None):
     fig = Figure(figsize=(10, 6))
     ax = fig.subplots()
 
-    ax.plot(frequency_half, abs(DFT_half))
+    ax.plot(frequencies[:half_point], abs(DFT_half))
 
     if peaks is not None:
-        ax.scatter(peaks, DFT_half[peaks])
+        ax.scatter(frequencies[peaks], abs(DFT_half[peaks]))
 
         # Add the text for each peak
         for index, peak in enumerate(peaks):
 
-            text = "Peak " + str(index) + " - Freq: " + str(frequency_half[peak]) \
+            text = "Peak " + str(index) + " - Freq: " + str(frequencies[peak]) \
                    + " / DFT Amplitude: " + str(round(abs(DFT_half[peak]), 4))
 
-            ax.annotate(text, (peak - 0.05, DFT_half[peak] + 0.025))
+            ax.annotate(text, (peak - 0.05, DFT_half[peak] + 0.01))
 
 
-    ax.grid(visible=True)
+    # Show precise grid
+    ax.minorticks_on()
+    ax.grid(which='major', color='b')
+    ax.grid(which='minor', color='g', linestyle='--')
 
     ax.set_xlabel('Frequency Domain (Hz)')
     ax.set_ylabel('DFT Amplitude')

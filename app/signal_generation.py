@@ -28,21 +28,17 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
 
     nr_time_samples = int(sample_rate * duration)
 
-    # The time range (if put in pyplot plots with number of seconds)
-    time_range = np.arange(0, nr_time_samples) / sample_rate
-
     # Define variable
     signal = np.zeros((1, nr_time_samples))
 
-
-
+    t = np.linspace(0, duration, nr_time_samples, endpoint=False)
 
     # Add all the frequencies together to get the resulting signal
     for i in range(0, frequencies.shape[0]):
         if use_cos:
-            signal += amplitudes[i] * np.cos(2 * np.pi * frequencies[i] * time_range + phases[i])
+            signal += amplitudes[i] * np.cos(2 * np.pi * frequencies[i] * t + phases[i])
         else:
-            signal += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * time_range + phases[i])
+            signal += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * t + phases[i])
 
         if normalize:
             maxA = np.repeat(signal.max()[np.newaxis], nr_time_samples)
@@ -73,7 +69,7 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
             generated_signals_history.append((signal_id, name, signal, sample_rate))
 
 
-    return signal, time_range
+    return signal, t
 
 
 def create_plot(signal, time):

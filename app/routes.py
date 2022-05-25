@@ -2,24 +2,24 @@ import requests
 from flask import render_template, flash, redirect, url_for, request
 
 from app import app, generated_signals_history, peaks_frequency_estimation
-from app.dft_calculation import plot_dft, calculate_dft
+from app.dft_calculation import plot_dft, calculate_fft
 from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm, FrequencyEstimationForm, PeakSelectForm
-from app.frequency_estimation import estimate_frequency
+from app.frequency_estimation import estimate_initial_frequency
 from app.signal_generation import generate_signal, create_plot
 
 
 @app.route('/')
 @app.route('/index')
 def index():
-    user = {'username': 'Handicapatul'}
+    user = {'username': 'Alex Farcas'}
     posts = [
         {
-            'author': {'username': 'ElChapo'},
-            'body': 'Cat e ceasu!'
+            'author': {'username': 'Dumitru farcas'},
+            'body': 'Semnalele sunt mai faine decat taragoturile'
         },
         {
-            'author': {'username': 'JeanValjean'},
-            'body': 'da domnule'
+            'author': {'username': 'Jean Moscopol'},
+            'body': 'O aplicatie buna'
         }
     ]
     return render_template('index.html', title='Homepage', user=user, posts=posts)
@@ -42,7 +42,7 @@ def signal_generator():
     embedded_image = []
 
     # Mock
-    generate_signal(100, [4.54, 53.33], 1, [1, 1], [0, 0, 0], save=True)
+    generate_signal(1000, [4.54, 44.33], 1, [1, 1], [0, 0, 0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
@@ -72,8 +72,8 @@ def signal_generator():
     return render_template('generate.html', plot=embedded_image, form=form)
 
 
-@app.route('/dft', methods=['GET', 'POST'])
-def dft():
+@app.route('/fft', methods=['GET', 'POST'])
+def fft():
     form = DFTCalculationForm()
 
     # Populate the choices list with the saved signals
@@ -87,11 +87,11 @@ def dft():
         selected_signal = generated_signals_history[selected_index]
 
         # Calculate the DFT
-        signal_dft = calculate_dft(selected_signal)
+        signal_dft = calculate_fft(selected_signal)
 
         embedded_image = plot_dft(signal_dft, selected_signal[3])
 
-    return render_template('dft.html', plot=embedded_image, signals=generated_signals_history, form=form)
+    return render_template('fft.html', plot=embedded_image, signals=generated_signals_history, form=form)
 
 
 @app.route('/estimate', methods=['GET', 'POST'])
@@ -117,7 +117,9 @@ def frequency_estimation():
         selected_signal = generated_signals_history[selected_index]
 
         # Estimate the frequency
-        embedded_image, peaks = estimate_frequency(selected_signal)
+        embedded_image, peaks = estimate_initial_frequency(selected_signal,
+                                                           form.start_freq_field.data,
+                                                           form.end_freq_field.data)
 
         peaks_frequency_estimation.append(peaks)
 
@@ -131,7 +133,8 @@ def frequency_estimation():
 
 
     if peak_form.select_peak.data and peak_form.validate_on_submit():
-        print("da")
+
+        peak_form.select_peak.data
 
 
     return render_template('frequency_estimation.html', plot=embedded_image,
