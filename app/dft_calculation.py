@@ -1,7 +1,6 @@
 import base64
 import io
 
-import numpy as np
 from matplotlib.figure import Figure
 from scipy.fftpack import fft, fftfreq
 
