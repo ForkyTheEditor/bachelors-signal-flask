@@ -1,11 +1,13 @@
-import requests
 from flask import render_template, flash, redirect, url_for, request
 
 from app import app, generated_signals_history, peaks_frequency_estimation
 from app.dft_calculation import plot_dft, calculate_fft
 from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm, FrequencyEstimationForm, PeakSelectForm
-from app.frequency_estimation import estimate_initial_frequency
+from app.frequency_estimation import estimate_initial_frequency, signal_crop_estimation
 from app.signal_generation import generate_signal, create_plot
+
+
+selected_index = None
 
 
 @app.route('/')
@@ -42,7 +44,7 @@ def signal_generator():
     embedded_image = []
 
     # Mock
-    generate_signal(1000, [4.54, 44.33], 1, [1, 1], [0, 0, 0], save=True)
+    generate_signal(1000, [4.54, 44.33], 1.1, [1, 1], [0, 0, 0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
@@ -83,8 +85,8 @@ def fft():
     embedded_image = []
 
     if form.validate_on_submit():
-        selected_index = form.select_signal.data
-        selected_signal = generated_signals_history[selected_index]
+        signal_selected_index = form.select_signal.data
+        selected_signal = generated_signals_history[signal_selected_index]
 
         # Calculate the DFT
         signal_dft = calculate_fft(selected_signal)
@@ -108,29 +110,35 @@ def frequency_estimation():
                                   in enumerate(generated_signals_history)]
 
     embedded_image = []
+    global selected_index
 
-    if form.validate_on_submit():
+    if form.estimate_frequency.data and form.validate():
+
         selected_index = form.select_signal.data
-        selected_signal = generated_signals_history[selected_index]
+        selected_signal_object = generated_signals_history[selected_index]
 
         # Estimate the frequency
-        embedded_image = estimate_initial_frequency(selected_signal,
-                                                    form.start_freq_field.data,
-                                                    form.end_freq_field.data)
+        embedded_image, peaks = estimate_initial_frequency(selected_signal_object,
+                                                           form.start_freq_field.data,
+                                                           form.end_freq_field.data)
 
-        # peaks_frequency_estimation.append(peaks)
+        peaks_frequency_estimation.clear()
+        peaks_frequency_estimation.append(peaks)
 
-    # if peaks_frequency_estimation:
-    #     peak_form.select_peak.choices = [(peak, "Peak " + str(i)) for i, peak
-    #                                      in enumerate(peaks_frequency_estimation[0])]
-    #     # Reactivate the peak form
-    #     peak_form.submit_choice.render_kw = {}
-    #     peak_form.select_peak.render_kw = {}
-    #
-    #
-    # if peak_form.select_peak.data and peak_form.validate_on_submit():
-    #
-    #     peak_form.select_peak.data
+
+    if peaks_frequency_estimation:
+        peak_form.select_peak.choices = [(i, "Peak " + str(i)) for i, peak
+                                         in enumerate(peaks_frequency_estimation[0])]
+        # Reactivate the peak form
+        peak_form.submit_choice.render_kw = {}
+        peak_form.select_peak.render_kw = {}
+
+
+    if peak_form.submit_choice.data and peak_form.validate():
+
+        selected_signal_object = generated_signals_history[selected_index]
+        chosen_peak = peaks_frequency_estimation[0][peak_form.select_peak.data]
+        embedded_image = signal_crop_estimation(selected_signal_object[2][0], selected_signal_object[3], chosen_peak)
 
     return render_template('frequency_estimation.html', plot=embedded_image,
                            signals=generated_signals_history, form=form, peak_form=peak_form)
