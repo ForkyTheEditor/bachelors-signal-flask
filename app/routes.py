@@ -85,8 +85,8 @@ def fft():
     embedded_image = []
 
     if form.validate_on_submit():
-        selected_index = form.select_signal.data
-        selected_signal = generated_signals_history[selected_index]
+        signal_selected_index = form.select_signal.data
+        selected_signal = generated_signals_history[signal_selected_index]
 
         # Calculate the DFT
         signal_dft = calculate_fft(selected_signal)
@@ -122,6 +122,7 @@ def frequency_estimation():
                                                            form.start_freq_field.data,
                                                            form.end_freq_field.data)
 
+        peaks_frequency_estimation.clear()
         peaks_frequency_estimation.append(peaks)
 
 
@@ -137,7 +138,7 @@ def frequency_estimation():
 
         selected_signal_object = generated_signals_history[selected_index]
         chosen_peak = peaks_frequency_estimation[0][peak_form.select_peak.data]
-        signal_crop_estimation(selected_signal_object[2][0], selected_signal_object[3], chosen_peak)
+        embedded_image = signal_crop_estimation(selected_signal_object[2][0], selected_signal_object[3], chosen_peak)
 
     return render_template('frequency_estimation.html', plot=embedded_image,
                            signals=generated_signals_history, form=form, peak_form=peak_form)

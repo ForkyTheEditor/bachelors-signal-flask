@@ -96,8 +96,8 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
 
 
     # Calculate the DFT in a small range around the peak
-    start_frequency = floor(chosen_peak[0]) - 3
-    end_frequency = ceil(chosen_peak[0]) + 3
+    start_frequency = floor(chosen_peak[0]) - 4
+    end_frequency = ceil(chosen_peak[0]) + 4
 
 
     N = signal.shape[0]
@@ -111,8 +111,13 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
     # The time (in nr of samples) the signal will blah blah
     final_nr_samples = final_time * sample_rate
 
+    # The period in nr of samples
+    period_nr_sample = int(period * sample_rate)
+
+
     peak_curve_1 = []
     peak_curve_2 = []
+
 
     # Repetitively crop 2 samples from the signal until t = ts - 1.5*period, where ts is the original
     # signal length
@@ -126,13 +131,43 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
 
         x_dft = np.array(dft[0])
         y_dft = np.array(dft[1])
-        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=5)[0]
 
+        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=5)[0]
         new_peak = (x_dft[new_peak_index][0], y_dft[new_peak_index][0])
 
-        if N - signal.shape[0] < period:
+        if N - signal.shape[0] < period_nr_sample:
             peak_curve_1.append(new_peak)
         else:
             peak_curve_2.append(new_peak)
 
-    print("peak curve:", peak_curve_1)
+    # ======= DRAW PLOT ====== #
+    fig = Figure(figsize=(10, 6))
+    ax = fig.subplots()
+
+    x_1, y_1 = zip(*peak_curve_1)
+    x_2, y_2 = zip(*peak_curve_2)
+
+    # Plot the two curves
+    ax.plot(x_1, y_1, color='red', label='Cycle 1')
+    ax.plot(x_2, y_2, color='black', label='Cycle 2')
+    ax.legend()
+
+    # Show precise grid
+    ax.minorticks_on()
+    ax.grid(which='major', color='b')
+    ax.grid(which='minor', color='g', linestyle='--')
+
+    ax.set_xlabel('Frequency Domain (Hz)')
+    ax.set_ylabel('DFT Amplitude')
+
+    # Save it to a temporary buffer.
+    buf = io.BytesIO()
+
+    fig.savefig(buf, format="png", bbox_inches="tight")
+
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+
+    embedded_image = f"data:image/png;base64,{data}"
+    # ======= DRAW PLOT ====== #
+    return embedded_image
