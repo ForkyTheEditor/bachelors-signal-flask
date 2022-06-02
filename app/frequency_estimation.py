@@ -35,7 +35,7 @@ def granular_dft(signal, sample_rate, start_freq, end_freq):
             real_values[j] += real_part
 
 
-    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2) * 2/N for i in range(end_freq - start_freq)]
+    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2) for i in range(end_freq - start_freq)]
     frequencies = [i * delta_f for i in range(start_freq, end_freq)]
 
 
@@ -106,7 +106,7 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
     period = 1/frequency
 
     # The time (in seconds) the signal will have when the algorithm has finished running
-    final_time = ts - 1.5 * period
+    final_time = ts - 1.9 * period
 
     # The time (in nr of samples) the signal will blah blah
     final_nr_samples = final_time * sample_rate
@@ -117,9 +117,15 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
 
     peak_curve_1 = []
     peak_curve_2 = []
+    peak_curve_3 = []
+
+    # Find the initial whole number of cycles
+    last_whole_nr_cycles = floor(frequency * (signal.shape[0] / sample_rate))
 
 
-    # Repetitively crop 2 samples from the signal until t = ts - 1.5*period, where ts is the original
+    unseparated_peak_curve = []
+
+    # Repetitively crop 2 samples from the signal until t = ts - 1.9*period, where ts is the original
     # signal length
     while signal.shape[0] > final_nr_samples:
 
@@ -135,21 +141,41 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
         new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=5)[0]
         new_peak = (x_dft[new_peak_index][0], y_dft[new_peak_index][0])
 
-        if N - signal.shape[0] < period_nr_sample:
-            peak_curve_1.append(new_peak)
-        else:
-            peak_curve_2.append(new_peak)
+        nr_of_whole_cycles_left = floor(frequency * (signal.shape[0] / sample_rate))
+        unseparated_peak_curve.append(new_peak)
+
+        if last_whole_nr_cycles > nr_of_whole_cycles_left:
+            last_whole_nr_cycles = nr_of_whole_cycles_left
+
+
+    threshold = 0.5
+    x_whole_curve, _ = zip(*unseparated_peak_curve)
+    discontinuities = np.where(abs(np.diff(x_whole_curve)) > threshold)[0] + 1
+
+
+    peak_curve_1 = unseparated_peak_curve[:discontinuities[0]]
+    peak_curve_2 = unseparated_peak_curve[discontinuities[0]:discontinuities[1]]
+    peak_curve_3 = unseparated_peak_curve[discontinuities[1]:]
+
+
 
     # ======= DRAW PLOT ====== #
     fig = Figure(figsize=(10, 6))
     ax = fig.subplots()
+    if len(peak_curve_1) > 0:
+        x_1, y_1 = zip(*peak_curve_1)
+        ax.scatter(x_1, y_1, color='red', label='Cycle ' + str(last_whole_nr_cycles + 2))
 
-    x_1, y_1 = zip(*peak_curve_1)
     x_2, y_2 = zip(*peak_curve_2)
 
-    # Plot the two curves
-    ax.plot(x_1, y_1, color='red', label='Cycle 1')
-    ax.plot(x_2, y_2, color='black', label='Cycle 2')
+    ax.scatter(x_2, y_2, color='black', label='Cycle ' + str(last_whole_nr_cycles + 1))
+
+    if len(peak_curve_3) > 0:
+        x_3, y_3 = zip(*peak_curve_3)
+        ax.scatter(x_3, y_3, color='purple', label='Cycle ' + str(last_whole_nr_cycles))
+
+
+
     ax.legend()
 
     # Show precise grid
