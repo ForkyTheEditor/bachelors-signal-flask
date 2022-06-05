@@ -6,9 +6,26 @@ import numpy as np
 from matplotlib.figure import Figure
 from scipy.signal import find_peaks
 
+import app
+
+
+def parabolic_interpolation(point1, point2, point3):
+
+    x1, y1 = point1[0], point1[1]
+    x2, y2 = point2[0], point2[1]
+    x3, y3 = point3[0], point3[1]
+
+    denominator = (x1 - x2) * (x1 - x3) * (x2 - x3)
+    a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denominator
+
+    b = (x3*x3 * (y1 - y2) + x2*x2 * (y3 - y1) + x1*x1 * (y2 - y3)) / denominator
+
+    c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denominator
+
+    return -b / (2 * a), c - b * b / (4 * a)
+
 
 def granular_dft(signal, sample_rate, start_freq, end_freq):
-
     # Calculate real and imaginary part
     # then calculate magnitude of the vector
 
@@ -20,13 +37,17 @@ def granular_dft(signal, sample_rate, start_freq, end_freq):
     if end_freq > N or end_freq <= start_freq:
         raise Exception("Invalid start and end frequencies!")
 
+    frequencies = [i * delta_f for i in range(N)]
+    filtered_frequencies = [f for f in frequencies if start_freq <= f <= end_freq]
+
+
     # Initialize arrays
-    k = [i for i in range(end_freq-start_freq)]
-    imaginary_values = [0 for _ in range(end_freq - start_freq)]
-    real_values = [0 for _ in range(end_freq-start_freq)]
+    k = [i / delta_f for i in filtered_frequencies]
+    imaginary_values = [0 for _ in range(len(k))]
+    real_values = [0 for _ in range(len(k))]
 
     for i in range(N):
-        for j in range(end_freq - start_freq):
+        for j in range(len(k)):
             imaginary_part = -signal[i] * np.sin(2 * np.pi * k[j] * i / N)
             real_part = signal[i] * np.cos(2 * np.pi * k[j] * i / N)
 
@@ -34,13 +55,11 @@ def granular_dft(signal, sample_rate, start_freq, end_freq):
             imaginary_values[j] += imaginary_part
             real_values[j] += real_part
 
-
-    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2) * 2/N for i in range(end_freq - start_freq)]
-    frequencies = [i * delta_f for i in range(start_freq, end_freq)]
-
+    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2)
+                  for i in range(len(k))]
 
 
-    return frequencies, amplitudes
+    return filtered_frequencies, amplitudes
 
 
 def estimate_initial_frequency(signal_object, start_freq, end_freq):
@@ -70,7 +89,6 @@ def estimate_initial_frequency(signal_object, start_freq, end_freq):
 
             ax.annotate(text, (peak - 0.05, y_dft[peak] - 0.01))
 
-
     # Show precise grid
     ax.minorticks_on()
     ax.grid(which='major', color='b')
@@ -93,20 +111,17 @@ def estimate_initial_frequency(signal_object, start_freq, end_freq):
 
 
 def signal_crop_estimation(signal, sample_rate, chosen_peak):
-
-
     # Calculate the DFT in a small range around the peak
     start_frequency = floor(chosen_peak[0]) - 4
     end_frequency = ceil(chosen_peak[0]) + 4
 
-
     N = signal.shape[0]
     ts = N / sample_rate
     frequency = chosen_peak[0]
-    period = 1/frequency
+    period = 1 / frequency
 
     # The time (in seconds) the signal will have when the algorithm has finished running
-    final_time = ts - 1.5 * period
+    final_time = ts - 1.9 * period
 
     # The time (in nr of samples) the signal will blah blah
     final_nr_samples = final_time * sample_rate
@@ -114,12 +129,12 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
     # The period in nr of samples
     period_nr_sample = int(period * sample_rate)
 
+    # Find the initial whole number of cycles
+    last_whole_nr_cycles = floor(frequency * (signal.shape[0] / sample_rate))
+    initial_whole_nr_cycles = last_whole_nr_cycles
+    unseparated_peak_curve = []
 
-    peak_curve_1 = []
-    peak_curve_2 = []
-
-
-    # Repetitively crop 2 samples from the signal until t = ts - 1.5*period, where ts is the original
+    # Repetitively crop 2 samples from the signal until t = ts - 1.9*period, where ts is the original
     # signal length
     while signal.shape[0] > final_nr_samples:
 
@@ -132,24 +147,65 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
         x_dft = np.array(dft[0])
         y_dft = np.array(dft[1])
 
-        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=5)[0]
+        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=3)[0]
         new_peak = (x_dft[new_peak_index][0], y_dft[new_peak_index][0])
 
-        if N - signal.shape[0] < period_nr_sample:
-            peak_curve_1.append(new_peak)
-        else:
-            peak_curve_2.append(new_peak)
+        nr_of_whole_cycles_left = floor(frequency * (signal.shape[0] / sample_rate))
+        unseparated_peak_curve.append(new_peak)
+
+        if last_whole_nr_cycles > nr_of_whole_cycles_left:
+            last_whole_nr_cycles = nr_of_whole_cycles_left
+
+    threshold = 0.5
+    x_whole_curve, _ = zip(*unseparated_peak_curve)
+    discontinuities = np.where(abs(np.diff(x_whole_curve)) > threshold)[0] + 1
+
+    peak_curve_1 = unseparated_peak_curve[:discontinuities[0]]
+    peak_curve_2 = unseparated_peak_curve[discontinuities[0]:discontinuities[1]]
+    peak_curve_3 = unseparated_peak_curve[discontinuities[1]:]
+
+    # The final estimation is defined as: fe = fs - k*fs**2
+    k_constant = app.constants[initial_whole_nr_cycles]
+
+    x_2, y_2 = zip(*peak_curve_2)
+
+    # Parabolic interpolation between the three points with index of: peak - 1, peak, peak + 1
+    peak_index = find_peaks(y_2)[0][0]
+    middle_point = x_2[peak_index], y_2[peak_index]
+    left_point = x_2[peak_index - 1], y_2[peak_index - 1]
+    right_point = x_2[peak_index + 1], y_2[peak_index + 1]
+
+    interpolated_point = parabolic_interpolation(left_point, middle_point, right_point)
+
+    fs = interpolated_point[0]
+
+    fe = fs - k_constant * fs**2
 
     # ======= DRAW PLOT ====== #
     fig = Figure(figsize=(10, 6))
     ax = fig.subplots()
+    if len(peak_curve_1) > 0:
+        x_1, y_1 = zip(*peak_curve_1)
+        ax.scatter(x_1, y_1, color='red', label='Cycle ' + str(last_whole_nr_cycles + 2))
 
-    x_1, y_1 = zip(*peak_curve_1)
-    x_2, y_2 = zip(*peak_curve_2)
 
-    # Plot the two curves
-    ax.plot(x_1, y_1, color='red', label='Cycle 1')
-    ax.plot(x_2, y_2, color='black', label='Cycle 2')
+    ax.scatter(x_2, y_2, color='black', label='Cycle ' + str(last_whole_nr_cycles + 1))
+
+    if len(peak_curve_3) > 0:
+        x_3, y_3 = zip(*peak_curve_3)
+        ax.scatter(x_3, y_3, color='purple', label='Cycle ' + str(last_whole_nr_cycles))
+
+    # Show the result of the interpolation
+    ax.scatter(interpolated_point[0], interpolated_point[1], color='blue', marker='x', s=175)
+
+    interpolated_point_text = "Freq: " + str(round(interpolated_point[0], 3)) \
+                              + " / DFT Amplitude: " + str(round(interpolated_point[1], 3))
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.7)
+    ax.text(0.1, 0.05, 'Fine estimated frequency: ' + str(round(fe, 4)), transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props)
+
+    ax.annotate(interpolated_point_text, (interpolated_point[0] + 0.02, interpolated_point[1] + 5))
     ax.legend()
 
     # Show precise grid

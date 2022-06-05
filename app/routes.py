@@ -44,7 +44,7 @@ def signal_generator():
     embedded_image = []
 
     # Mock
-    generate_signal(1000, [4.54, 44.33], 1.1, [1, 1], [0, 0, 0], save=True)
+    generate_signal(1000, [7.76], 1.5, [1], [0, 0, 0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
