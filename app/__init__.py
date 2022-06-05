@@ -24,5 +24,12 @@ bootstrap = Bootstrap(app)
 
 generated_signals_history = []
 peaks_frequency_estimation = []
+constants = {}
+
+with open(app.config['CONSTANTS_PATH']) as f:
+    for line in f:
+        (k, v) = line.split(sep=',')
+        constants[int(k)] = float(v)
+
 
 from app import routes

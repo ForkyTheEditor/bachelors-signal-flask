@@ -6,6 +6,8 @@ import numpy as np
 from matplotlib.figure import Figure
 from scipy.signal import find_peaks
 
+import app
+
 
 def parabolic_interpolation(point1, point2, point3):
 
@@ -35,13 +37,17 @@ def granular_dft(signal, sample_rate, start_freq, end_freq):
     if end_freq > N or end_freq <= start_freq:
         raise Exception("Invalid start and end frequencies!")
 
+    frequencies = [i * delta_f for i in range(N)]
+    filtered_frequencies = [f for f in frequencies if start_freq <= f <= end_freq]
+
+
     # Initialize arrays
-    k = [i for i in range(end_freq - start_freq)]
-    imaginary_values = [0 for _ in range(end_freq - start_freq)]
-    real_values = [0 for _ in range(end_freq - start_freq)]
+    k = [i / delta_f for i in filtered_frequencies]
+    imaginary_values = [0 for _ in range(len(k))]
+    real_values = [0 for _ in range(len(k))]
 
     for i in range(N):
-        for j in range(end_freq - start_freq):
+        for j in range(len(k)):
             imaginary_part = -signal[i] * np.sin(2 * np.pi * k[j] * i / N)
             real_part = signal[i] * np.cos(2 * np.pi * k[j] * i / N)
 
@@ -49,10 +55,11 @@ def granular_dft(signal, sample_rate, start_freq, end_freq):
             imaginary_values[j] += imaginary_part
             real_values[j] += real_part
 
-    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2) for i in range(end_freq - start_freq)]
-    frequencies = [i * delta_f for i in range(start_freq, end_freq)]
+    amplitudes = [np.sqrt(imaginary_values[i] ** 2 + real_values[i] ** 2)
+                  for i in range(len(k))]
 
-    return frequencies, amplitudes
+
+    return filtered_frequencies, amplitudes
 
 
 def estimate_initial_frequency(signal_object, start_freq, end_freq):
@@ -124,7 +131,7 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
 
     # Find the initial whole number of cycles
     last_whole_nr_cycles = floor(frequency * (signal.shape[0] / sample_rate))
-
+    initial_whole_nr_cycles = last_whole_nr_cycles
     unseparated_peak_curve = []
 
     # Repetitively crop 2 samples from the signal until t = ts - 1.9*period, where ts is the original
@@ -140,7 +147,7 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
         x_dft = np.array(dft[0])
         y_dft = np.array(dft[1])
 
-        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=5)[0]
+        new_peak_index = find_peaks(y_dft, height=0.1, prominence=0.15, wlen=3)[0]
         new_peak = (x_dft[new_peak_index][0], y_dft[new_peak_index][0])
 
         nr_of_whole_cycles_left = floor(frequency * (signal.shape[0] / sample_rate))
@@ -157,12 +164,8 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
     peak_curve_2 = unseparated_peak_curve[discontinuities[0]:discontinuities[1]]
     peak_curve_3 = unseparated_peak_curve[discontinuities[1]:]
 
-    # ======= DRAW PLOT ====== #
-    fig = Figure(figsize=(10, 6))
-    ax = fig.subplots()
-    if len(peak_curve_1) > 0:
-        x_1, y_1 = zip(*peak_curve_1)
-        ax.scatter(x_1, y_1, color='red', label='Cycle ' + str(last_whole_nr_cycles + 2))
+    # The final estimation is defined as: fe = fs - k*fs**2
+    k_constant = app.constants[initial_whole_nr_cycles]
 
     x_2, y_2 = zip(*peak_curve_2)
 
@@ -173,6 +176,18 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
     right_point = x_2[peak_index + 1], y_2[peak_index + 1]
 
     interpolated_point = parabolic_interpolation(left_point, middle_point, right_point)
+
+    fs = interpolated_point[0]
+
+    fe = fs - k_constant * fs**2
+
+    # ======= DRAW PLOT ====== #
+    fig = Figure(figsize=(10, 6))
+    ax = fig.subplots()
+    if len(peak_curve_1) > 0:
+        x_1, y_1 = zip(*peak_curve_1)
+        ax.scatter(x_1, y_1, color='red', label='Cycle ' + str(last_whole_nr_cycles + 2))
+
 
     ax.scatter(x_2, y_2, color='black', label='Cycle ' + str(last_whole_nr_cycles + 1))
 
@@ -185,6 +200,10 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
 
     interpolated_point_text = "Freq: " + str(round(interpolated_point[0], 3)) \
                               + " / DFT Amplitude: " + str(round(interpolated_point[1], 3))
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.7)
+    ax.text(0.1, 0.05, 'Fine estimated frequency: ' + str(round(fe, 4)), transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props)
 
     ax.annotate(interpolated_point_text, (interpolated_point[0] + 0.02, interpolated_point[1] + 5))
     ax.legend()
