@@ -26,12 +26,12 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
     # Sample rate should be an integer
     sample_rate = int(sample_rate)
 
-    nr_time_samples = int(sample_rate * duration)
+    N = int(sample_rate * duration)
 
     # Define variable
-    signal = np.zeros((1, nr_time_samples))
+    signal = np.zeros((1, N))
 
-    t = np.linspace(0, duration, nr_time_samples, endpoint=False)
+    t = np.linspace(0, duration, N, endpoint=False)
 
     # Add all the frequencies together to get the resulting signal
     for i in range(0, frequencies.shape[0]):
@@ -41,8 +41,8 @@ def generate_signal(sample_rate, frequencies, duration, amplitudes, phases, use_
             signal += amplitudes[i] * np.sin(2 * np.pi * frequencies[i] * t + phases[i])
 
         if normalize:
-            maxA = np.repeat(signal.max()[np.newaxis], nr_time_samples)
-            minA = np.repeat(signal.min()[np.newaxis], nr_time_samples)
+            maxA = np.repeat(signal.max()[np.newaxis], N)
+            minA = np.repeat(signal.min()[np.newaxis], N)
             signal = (2 * (signal - minA) / (maxA - minA)) - 1
 
 

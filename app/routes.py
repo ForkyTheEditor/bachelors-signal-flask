@@ -19,10 +19,7 @@ def index():
             'author': {'username': 'Dumitru farcas'},
             'body': 'Semnalele sunt mai faine decat taragoturile'
         },
-        {
-            'author': {'username': 'Jean Moscopol'},
-            'body': 'O aplicatie buna'
-        }
+
     ]
     return render_template('index.html', title='Homepage', user=user, posts=posts)
 
@@ -44,7 +41,7 @@ def signal_generator():
     embedded_image = []
 
     # Mock
-    generate_signal(1000, [7.76], 1.5, [1], [0, 0, 0], save=True)
+    generate_signal(1000, [7.58], 0.853, [1], [0, 0, 0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
