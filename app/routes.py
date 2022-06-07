@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request
 
 from app import app, generated_signals_history, peaks_frequency_estimation
-from app.dft_calculation import plot_dft, calculate_fft
+from app.fft_calculation import plot_dft, calculate_fft
 from app.forms import LoginForm, SignalGenerationForm, DFTCalculationForm, FrequencyEstimationForm, PeakSelectForm
 from app.frequency_estimation import estimate_initial_frequency, signal_crop_estimation
 from app.signal_generation import generate_signal, create_plot
