@@ -167,7 +167,7 @@ def signal_crop_estimation(signal, sample_rate, chosen_peak):
         if last_whole_nr_cycles > nr_of_whole_cycles_left:
             last_whole_nr_cycles = nr_of_whole_cycles_left
 
-    threshold = 0.5
+    threshold = 0.35
     x_whole_curve, _ = zip(*unseparated_peak_curve)
     discontinuities = np.where(abs(np.diff(x_whole_curve)) > threshold)[0] + 1
 

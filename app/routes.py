@@ -14,14 +14,8 @@ selected_index = None
 @app.route('/index')
 def index():
     user = {'username': 'Alex Farcas'}
-    posts = [
-        {
-            'author': {'username': 'Dumitru farcas'},
-            'body': 'Semnalele sunt mai faine decat taragoturile'
-        },
 
-    ]
-    return render_template('index.html', title='Homepage', user=user, posts=posts)
+    return render_template('index.html', title='Homepage', user=user)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -41,7 +35,7 @@ def signal_generator():
     embedded_image = []
 
     # Mock
-    generate_signal(1000, [7.58], 0.853, [1], [0, 0, 0], save=True)
+    generate_signal(1000, [6.33], 2.275, [1], [0, 0, 0], save=True)
 
     if form.validate_on_submit():
         # Recalculate and redraw plot
